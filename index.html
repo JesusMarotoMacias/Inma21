@@ -2,245 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inma 21 - Bio-Programación</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inma 21</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        serenity: '#0f172a',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .aura-emerald { box-shadow: 0 0 50px -10px rgba(16, 185, 129, 0.3); }
-        input[type="range"] { accent-color: #10b981; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background-color: #020617; color: white; font-family: sans-serif; }
     </style>
 </head>
-<body class="bg-slate-950">
-    <div id="root"></div>
+<body class="flex flex-col min-h-screen">
+    <header class="p-8 text-center">
+        <h1 class="text-4xl font-black italic uppercase tracking-tighter">Inma<span class="text-emerald-500">21</span></h1>
+        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-[0.5em] mt-2">Bio-Programación Élite</p>
+    </header>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-
-        // Mock de datos necesarios (INITIAL_ENTRY y componentes que faltan)
-        const INITIAL_ENTRY = (day) => ({
-            day,
-            intention: "",
-            biohacking: { breathingVagal: false, breathingCoherent: false, consciousMovement: false, cognitiveDownload: false },
-            health: { cleanFood: false, exercise: false, positiveThinking: false },
-            focus: { uncomfortableTask: false },
-            avoidance: { alcohol: false, tobacco: false, socialMedia: false, masturbation: false },
-            metrics: { mentalClarity: 3, discipline: 3 },
-            closure: { reflection: "", dailyScore: 0 }
-        });
-
-        const DEFAULT_INMA = "https://i.postimg.cc/85z1XQ2g/inma-peace.jpg";
-
-        // Componentes Auxiliares
-        const CircularProgress = ({ percentage, size }) => (
-            <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-                <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-800" />
-                    <circle cx="50%" cy="50%" r="45%" stroke="currentColor" strokeWidth="8" fill="transparent" 
-                        strokeDasharray="283" strokeDashoffset={283 - (283 * percentage) / 100}
-                        className="text-emerald-500 transition-all duration-1000" strokeLinecap="round" />
-                </svg>
-                <div className="absolute flex flex-col items-center">
-                    <span className="text-5xl font-black text-white">{percentage}%</span>
-                    <span className="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Bio-Progreso</span>
-                </div>
+    <main class="flex-1 p-6 flex flex-col items-center justify-center space-y-10">
+        <div class="relative w-48 h-48 rounded-full border-8 border-slate-800 flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-8 border-emerald-500 border-t-transparent animate-spin-slow"></div>
+            <div class="text-center">
+                <span class="text-4xl font-black block">0%</span>
+                <span class="text-[9px] text-emerald-500 font-bold uppercase tracking-widest">Progreso</span>
             </div>
-        );
+        </div>
 
-        const CollapsibleCard = ({ title, icon, children, defaultOpen = false }) => {
-            const [isOpen, setIsOpen] = useState(defaultOpen);
-            return (
-                <div className="glass-card rounded-[3rem] overflow-hidden transition-all">
-                    <button onClick={() => setIsOpen(!isOpen)} className="w-full p-8 flex justify-between items-center bg-white/5">
-                        <div className="flex items-center space-x-4">
-                            <span className="text-2xl">{icon}</span>
-                            <span className="text-sm font-black text-white uppercase tracking-widest">{title}</span>
-                        </div>
-                        <span className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}>▼</span>
-                    </button>
-                    {isOpen && <div className="p-8 space-y-6 animate-in">{children}</div>}
-                </div>
-            );
-        };
-
-        const CheckItem = ({ label, checked, onChange, accentColor = "bg-emerald-500" }) => (
-            <button onClick={() => onChange(!checked)} className="flex items-center justify-between p-6 glass-card rounded-3xl w-full active:scale-95 transition-all">
-                <span className={`text-sm font-bold ${checked ? 'text-white' : 'text-slate-500'}`}>{label}</span>
-                <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center ${checked ? `${accentColor} border-transparent` : 'border-white/10'}`}>
-                    {checked && <span className="text-white text-xs">✓</span>}
-                </div>
-            </button>
-        );
-
-        const MetricSlider = ({ label, value, onChange }) => (
-            <div className="space-y-4">
-                <div className="flex justify-between items-center px-4">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
-                    <span className="text-2xl font-black text-emerald-400 italic">{value}/5</span>
-                </div>
-                <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                        <button key={n} onClick={() => onChange(n)} className={`flex-1 py-4 rounded-2xl border-2 transition-all ${value === n ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500' : 'glass-card border-transparent text-slate-700'}`}>{n}</button>
-                    ))}
-                </div>
+        <div class="glass p-8 rounded-[3rem] w-full max-w-sm flex items-center space-x-6">
+            <img src="https://i.postimg.cc/85z1XQ2g/inma-peace.jpg" class="w-20 h-20 rounded-full border-2 border-emerald-500/50 object-cover">
+            <div>
+                <p class="text-emerald-500 text-[10px] font-black uppercase">Coach Inma</p>
+                <p class="text-sm italic text-slate-300">"Elige hoy la disciplina como tu lenguaje de poder."</p>
             </div>
-        );
+        </div>
 
-        // --- TU COMPONENTE APP (ADAPTADO) ---
-        const App = () => {
-            const [state, setState] = useState(() => {
-                const saved = localStorage.getItem('inma_21_vfinal_v3');
-                if (saved) return JSON.parse(saved);
-                return { currentDay: 1, entries: Array.from({ length: 21 }, (_, i) => INITIAL_ENTRY(i + 1)) };
-            });
+        <button onclick="alert('Iniciando Bitácora...')" class="w-full max-w-sm py-6 bg-emerald-600 rounded-[2rem] font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 active:scale-95 transition-all">
+            Abrir Bitácora
+        </button>
+    </main>
 
-            const [inmaPhoto, setInmaPhoto] = useState(() => localStorage.getItem('custom_inma_photo') || DEFAULT_INMA);
-            const [view, setView] = useState('dashboard');
-            const [coachMessage, setCoachMessage] = useState(null);
-            const [showCoachOverlay, setShowCoachOverlay] = useState(false);
-
-            useEffect(() => {
-                localStorage.setItem('inma_21_vfinal_v3', JSON.stringify(state));
-            }, [state]);
-
-            const currentEntry = state.entries[state.currentDay - 1];
-
-            const updateEntry = (updates) => {
-                setState(prev => ({
-                    ...prev,
-                    entries: prev.entries.map((e, idx) => idx === prev.currentDay - 1 ? { ...e, ...updates } : e)
-                }));
-            };
-
-            const handleCoach = (type) => {
-                const messages = {
-                    morning: "Tu sistema nervioso es una antena. Sintoniza hoy la frecuencia de la disciplina.",
-                    night: "Día sellado. Tus células se regeneran sobre la base de tus acciones de hoy.",
-                    advice: "La incomodidad es el lenguaje en el que el cuerpo te pide evolucionar."
-                };
-                setCoachMessage(messages[type]);
-                setShowCoachOverlay(true);
-            };
-
-            const completionPercentage = Math.round((state.entries.filter(e => e.closure.dailyScore > 0).length / 21) * 100);
-
-            return (
-                <div className="relative h-screen w-full flex flex-col overflow-hidden bg-slate-950 font-sans text-white">
-                    {/* Header */}
-                    <header className="relative z-20 px-8 pt-10 pb-6 flex justify-between items-center max-w-2xl mx-auto w-full">
-                        <button onClick={() => setView('dashboard')} className="text-left">
-                            <h1 className="text-3xl font-black tracking-tighter uppercase italic">Inma<span className="text-emerald-500 ml-1">21</span></h1>
-                            <p className="text-slate-500 text-[8px] font-black uppercase tracking-[0.4em]">Bio-Programación Élite</p>
-                        </button>
-                    </header>
-
-                    {/* Main Content */}
-                    <main className="relative z-10 flex-1 overflow-y-auto no-scrollbar w-full max-w-2xl mx-auto px-6 pb-40">
-                        {view === 'dashboard' && (
-                            <div className="space-y-10 py-4 animate-in">
-                                <div className="flex flex-col items-center"><CircularProgress percentage={completionPercentage} size={220} /></div>
-                                
-                                <div className="space-y-4">
-                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">Secuencia Neuronal</h3>
-                                    <div className="flex overflow-x-auto gap-4 py-4 no-scrollbar snap-x">
-                                        {state.entries.map((e, i) => (
-                                            <button key={i} onClick={() => { setState(p => ({...p, currentDay: i+1})); setView('daily'); }}
-                                                className={`flex-shrink-0 w-16 h-20 rounded-[2rem] flex flex-col items-center justify-center transition-all border
-                                                ${i+1 === state.currentDay ? 'bg-emerald-500 text-slate-950 font-black' : 'glass-card text-slate-500 border-white/5'}`}>
-                                                <span className="text-[8px] opacity-60">D{i+1}</span>
-                                                <span className="text-xl font-black">{i+1}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="glass-card p-8 rounded-[3.5rem] relative overflow-hidden flex items-center space-x-6">
-                                    <img src={inmaPhoto} className="w-24 h-24 rounded-full border-2 border-emerald-500/30 object-cover" />
-                                    <div>
-                                        <p className="text-emerald-500 text-[9px] font-black uppercase tracking-widest">Inma Coach</p>
-                                        <p className="text-slate-300 text-sm italic font-light">"Elige hoy la disciplina como tu lenguaje de poder."</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {view === 'daily' && (
-                            <div className="space-y-6 py-4 animate-in">
-                                <div className="flex justify-between items-center glass-card p-6 rounded-[2.5rem]">
-                                    <span className="text-xl font-black italic">Día {state.currentDay}</span>
-                                    <button onClick={() => setView('dashboard')} className="text-[10px] font-black uppercase text-emerald-500">Panel Central</button>
-                                </div>
-
-                                <CollapsibleCard title="Ritual de Mañana" icon="🧘" defaultOpen>
-                                    <textarea value={currentEntry.intention} onChange={(e) => updateEntry({ intention: e.target.value })} 
-                                        placeholder="Intención del día..." className="w-full bg-slate-900 rounded-3xl p-6 text-white text-sm outline-none mb-4 min-h-[100px]" />
-                                    <CheckItem label="🌬️ Respiración Vagal" checked={currentEntry.biohacking.breathingVagal} onChange={(v) => updateEntry({ biohacking: {...currentEntry.biohacking, breathingVagal: v} })} />
-                                    <CheckItem label="🏃 Movimiento Somático" checked={currentEntry.biohacking.consciousMovement} onChange={(v) => updateEntry({ biohacking: {...currentEntry.biohacking, consciousMovement: v} })} />
-                                    <button onClick={() => handleCoach('morning')} className="w-full py-5 rounded-3xl border border-emerald-500/30 text-emerald-500 text-[10px] font-black uppercase mt-4">Activar Enfoque</button>
-                                </CollapsibleCard>
-
-                                <CollapsibleCard title="Métricas de Biopoder" icon="🛡️">
-                                    <CheckItem label="🥦 Alimentación Limpia" checked={currentEntry.health.cleanFood} onChange={(v) => updateEntry({ health: {...currentEntry.health, cleanFood: v} })} />
-                                    <CheckItem label="🏃 Ejercicio Físico" checked={currentEntry.health.exercise} onChange={(v) => updateEntry({ health: {...currentEntry.health, exercise: v} })} />
-                                    <CheckItem label="🚫 Redes Sociales (Evitado)" checked={!currentEntry.avoidance.socialMedia} onChange={(v) => updateEntry({ avoidance: {...currentEntry.avoidance, socialMedia: !v} })} accentColor="bg-slate-700" />
-                                </CollapsibleCard>
-
-                                <CollapsibleCard title="Cierre de Jornada" icon="🌙">
-                                    <MetricSlider label="Nivel de Disciplina" value={currentEntry.metrics.discipline} onChange={(v) => updateEntry({ metrics: {...currentEntry.metrics, discipline: v} })} />
-                                    <div className="bg-slate-900 p-6 rounded-[2.5rem] mt-4">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="text-[10px] font-black text-slate-500 uppercase">Score Diario</span>
-                                            <span className="text-3xl font-black text-emerald-500">{currentEntry.closure.dailyScore}</span>
-                                        </div>
-                                        <input type="range" min="0" max="100" value={currentEntry.closure.dailyScore} onChange={(e) => updateEntry({ closure: {...currentEntry.closure, dailyScore: parseInt(e.target.value)} })} className="w-full" />
-                                    </div>
-                                    <button onClick={() => handleCoach('night')} className="w-full py-6 rounded-3xl bg-emerald-600 text-white font-black text-[11px] uppercase mt-6">Sellar Día</button>
-                                </CollapsibleCard>
-                            </div>
-                        )}
-                    </main>
-
-                    {/* Coach Overlay */}
-                    {showCoachOverlay && (
-                        <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-8 backdrop-blur-xl" onClick={() => setShowCoachOverlay(false)}>
-                            <div className="glass-card p-10 rounded-[3.5rem] max-w-xs text-center border-emerald-500/30" onClick={e => e.stopPropagation()}>
-                                <img src={inmaPhoto} className="w-24 h-24 rounded-full mx-auto mb-6 border-2 border-emerald-500" />
-                                <p className="text-xl italic font-light mb-8">"{coachMessage}"</p>
-                                <button onClick={() => setShowCoachOverlay(false)} className="w-full py-4 bg-emerald-600 rounded-2xl font-black uppercase text-xs">Recibido</button>
-                            </div>
-                        </div>
-                    );
-
-                    {/* Nav */}
-                    <nav className="fixed bottom-10 left-1/2 -translate-x-1/2 w-[calc(100%-4rem)] max-w-sm glass-card rounded-[3rem] p-2 flex justify-between z-[50]">
-                        <button onClick={() => setView('dashboard')} className={`flex-1 flex flex-col items-center py-4 rounded-[2.5rem] transition-all ${view === 'dashboard' ? 'bg-emerald-500 text-slate-950' : 'text-slate-500'}`}>
-                            <span className="text-[9px] font-black uppercase">Panel</span>
-                        </button>
-                        <button onClick={() => setView('daily')} className={`flex-1 flex flex-col items-center py-4 rounded-[2.5rem] transition-all ${view === 'daily' ? 'bg-emerald-500 text-slate-950' : 'text-slate-500'}`}>
-                            <span className="text-[9px] font-black uppercase">Bitácora</span>
-                        </button>
-                    </nav>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    <nav class="p-8 flex justify-around opacity-50 text-[10px] font-black uppercase tracking-widest">
+        <span>Panel</span>
+        <span>Bitácora</span>
+        <span>Ajustes</span>
+    </nav>
 </body>
 </html>
